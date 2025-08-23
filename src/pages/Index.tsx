@@ -1,13 +1,27 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { ThemeProvider } from "@/components/ThemeProvider";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import Hero from "@/components/home/Hero";
+import Mission from "@/components/home/Mission";
+import FeaturedDrinks from "@/components/home/FeaturedDrinks";
+import Reviews from "@/components/home/Reviews";
+import Newsletter from "@/components/home/Newsletter";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <ThemeProvider defaultTheme="light">
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main>
+          <Hero />
+          <Mission />
+          <FeaturedDrinks />
+          <Reviews />
+          <Newsletter />
+        </main>
+        <Footer />
       </div>
-    </div>
+    </ThemeProvider>
   );
 };
 
