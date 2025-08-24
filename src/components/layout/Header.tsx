@@ -1,12 +1,25 @@
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Coffee, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/hooks/useCart";
+import { Coffee, Menu, X, ShoppingCart, User, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { getTotalItems } = useCart();
 
   const navItems = [
     { path: "/", label: "Home" },
@@ -18,6 +31,11 @@ const Header = () => {
     { path: "/blog", label: "Blog" },
     { path: "/contact", label: "Contact" },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -48,15 +66,62 @@ const Header = () => {
 
           {/* Right side actions */}
           <div className="flex items-center gap-4">
+            {user && (
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart size={20} />
+                {getTotalItems() > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {getTotalItems()}
+                  </Badge>
+                )}
+              </Button>
+            )}
+            
             <ThemeToggle />
-            <div className="hidden md:flex gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/reservation">Reserve</Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link to="/loyalty">Join Rewards</Link>
-              </Button>
-            </div>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User size={20} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="hidden md:flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+                  Sign In
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/reservation">Reserve</Link>
+                </Button>
+              </div>
+            )}
+
+            {user && (
+              <div className="hidden md:flex gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/reservation">Reserve</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/loyalty">Join Rewards</Link>
+                </Button>
+              </div>
+            )}
 
             {/* Mobile menu button */}
             <Button
@@ -89,12 +154,28 @@ const Header = () => {
                 </Link>
               ))}
               <div className="flex gap-2 mt-2">
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/reservation">Reserve</Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link to="/loyalty">Join Rewards</Link>
-                </Button>
+                {user ? (
+                  <>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to="/reservation">Reserve</Link>
+                    </Button>
+                    <Button size="sm" asChild>
+                      <Link to="/loyalty">Join Rewards</Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+                      Sign In
+                    </Button>
+                    <Button size="sm" asChild>
+                      <Link to="/reservation">Reserve</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </nav>
