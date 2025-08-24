@@ -14,7 +14,193 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          menu_item_id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_item_id: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_item_id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_bookings: {
+        Row: {
+          booking_date: string
+          event_id: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_date?: string
+          event_id: string
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          event_id?: string
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_bookings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          current_attendees: number | null
+          description: string | null
+          duration_minutes: number | null
+          event_date: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          location: string | null
+          max_attendees: number | null
+          price: number | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          current_attendees?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          event_date: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          location?: string | null
+          max_attendees?: number | null
+          price?: number | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          current_attendees?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          location?: string | null
+          max_attendees?: number | null
+          price?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
+      menu_items: {
+        Row: {
+          allergens: string[] | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          ingredients: string[] | null
+          is_available: boolean | null
+          is_organic: boolean | null
+          is_vegan: boolean | null
+          name: string
+          price: number
+        }
+        Insert: {
+          allergens?: string[] | null
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          is_available?: boolean | null
+          is_organic?: boolean | null
+          is_vegan?: boolean | null
+          name: string
+          price: number
+        }
+        Update: {
+          allergens?: string[] | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          is_available?: boolean | null
+          is_organic?: boolean | null
+          is_vegan?: boolean | null
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
