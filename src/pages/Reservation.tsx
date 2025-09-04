@@ -13,8 +13,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/hooks/useCart';
+import { useReservations } from '@/hooks/useReservations';
 import { toast } from '@/components/ui/use-toast';
-import { Calendar as CalendarIcon, Clock, Users, MapPin, Phone, Mail, ShoppingCart, Minus, Plus, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Users, MapPin, Phone, Mail, ShoppingCart, Minus, Plus, Trash2, Leaf } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Reservation = () => {
@@ -30,6 +31,7 @@ const Reservation = () => {
   });
 
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
+  const { createReservation, loading: reservationLoading } = useReservations();
 
   const timeSlots = [
     '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM',
@@ -51,10 +53,10 @@ const Reservation = () => {
     }));
   };
 
-  const handleReservationSubmit = (e: React.FormEvent) => {
+  const handleReservationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedDate || !reservationData.time || !reservationData.location) {
+    if (!selectedDate || !reservationData.time || !reservationData.location || !reservationData.name || !reservationData.email || !reservationData.partySize) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -63,22 +65,30 @@ const Reservation = () => {
       return;
     }
 
-    toast({
-      title: "Reservation Confirmed!",
-      description: `Your table for ${reservationData.partySize} on ${format(selectedDate, 'PPP')} at ${reservationData.time} has been reserved.`
+    const result = await createReservation({
+      name: reservationData.name,
+      email: reservationData.email,
+      phone: reservationData.phone,
+      party_size: reservationData.partySize,
+      date: selectedDate,
+      time: reservationData.time,
+      location: reservationData.location,
+      special_requests: reservationData.specialRequests
     });
 
-    // Reset form
-    setReservationData({
-      name: '',
-      email: '',
-      phone: '',
-      partySize: '',
-      time: '',
-      location: '',
-      specialRequests: ''
-    });
-    setSelectedDate(undefined);
+    if (result.success) {
+      // Reset form
+      setReservationData({
+        name: '',
+        email: '',
+        phone: '',
+        partySize: '',
+        time: '',
+        location: '',
+        specialRequests: ''
+      });
+      setSelectedDate(undefined);
+    }
   };
 
   const handleOrderSubmit = () => {
@@ -257,9 +267,9 @@ const Reservation = () => {
                             />
                           </div>
 
-                          <Button type="submit" className="w-full" size="lg">
-                            Reserve Table
-                          </Button>
+                           <Button type="submit" className="w-full" size="lg" disabled={reservationLoading}>
+                             {reservationLoading ? 'Making Reservation...' : 'Reserve Table'}
+                           </Button>
                         </form>
                       </CardContent>
                     </Card>

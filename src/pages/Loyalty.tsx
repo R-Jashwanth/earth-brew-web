@@ -7,29 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLoyalty } from '@/hooks/useLoyalty';
 import { Star, Gift, Coffee, Leaf, Crown, Zap } from 'lucide-react';
-
-interface LoyaltyData {
-  points: number;
-  tier: string;
-  nextTier: string;
-  pointsToNextTier: number;
-  totalSpent: number;
-  visitsThisMonth: number;
-  rewardsEarned: number;
-}
 
 const Loyalty = () => {
   const { user } = useAuth();
-  const [loyaltyData, setLoyaltyData] = useState<LoyaltyData>({
-    points: 1250,
-    tier: 'Green',
-    nextTier: 'Gold',
-    pointsToNextTier: 750,
-    totalSpent: 485.50,
-    visitsThisMonth: 12,
-    rewardsEarned: 8
-  });
+  const { loyaltyData, transactions, loading, redeemPoints } = useLoyalty();
 
   const tiers = [
     {
@@ -117,19 +100,16 @@ const Loyalty = () => {
     { date: '2024-01-10', action: 'Purchase', points: 30, description: 'Green Tea Latte + Acai Bowl' }
   ];
 
-  const currentTier = tiers.find(tier => tier.name === loyaltyData.tier);
-  const nextTierData = tiers.find(tier => tier.name === loyaltyData.nextTier);
-  const progressPercentage = nextTierData 
+  const currentTier = loyaltyData ? tiers.find(tier => tier.name === loyaltyData.tier) : tiers[0];
+  const nextTierIndex = currentTier ? tiers.findIndex(tier => tier.name === currentTier.name) + 1 : 1;
+  const nextTierData = nextTierIndex < tiers.length ? tiers[nextTierIndex] : null;
+  const progressPercentage = loyaltyData && nextTierData 
     ? ((loyaltyData.points - (currentTier?.minPoints || 0)) / (nextTierData.minPoints - (currentTier?.minPoints || 0))) * 100
-    : 100;
+    : 0;
 
-  const handleRedeemReward = (rewardId: number, points: number) => {
-    if (loyaltyData.points >= points) {
-      setLoyaltyData(prev => ({
-        ...prev,
-        points: prev.points - points,
-        rewardsEarned: prev.rewardsEarned + 1
-      }));
+  const handleRedeemReward = async (rewardId: number, points: number, name: string) => {
+    if (loyaltyData && loyaltyData.points >= points) {
+      await redeemPoints(points, name);
     }
   };
 
@@ -169,43 +149,43 @@ const Loyalty = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="text-center">
-                        <div className="text-5xl font-bold text-hsl(var(--earth-green)) mb-2">
-                          {loyaltyData.points.toLocaleString()}
-                        </div>
-                        <p className="text-muted-foreground">Available Points</p>
-                      </div>
+                       <div className="text-center">
+                         <div className="text-5xl font-bold text-hsl(var(--earth-green)) mb-2">
+                           {loyaltyData?.points.toLocaleString() || '0'}
+                         </div>
+                         <p className="text-muted-foreground">Available Points</p>
+                       </div>
 
-                      {nextTierData && (
-                        <div className="space-y-3">
-                          <div className="flex justify-between text-sm">
-                            <span>Progress to {loyaltyData.nextTier}</span>
-                            <span>{loyaltyData.pointsToNextTier} points to go</span>
-                          </div>
-                          <Progress value={progressPercentage} className="h-3" />
-                        </div>
-                      )}
+                       {nextTierData && (
+                         <div className="space-y-3">
+                           <div className="flex justify-between text-sm">
+                             <span>Progress to {nextTierData.name}</span>
+                             <span>{Math.max(0, nextTierData.minPoints - (loyaltyData?.points || 0))} points to go</span>
+                           </div>
+                           <Progress value={Math.max(0, Math.min(100, progressPercentage))} className="h-3" />
+                         </div>
+                       )}
 
-                      <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-hsl(var(--earth-green))">
-                            ${loyaltyData.totalSpent.toFixed(2)}
-                          </div>
-                          <p className="text-xs text-muted-foreground">Total Spent</p>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-hsl(var(--earth-green))">
-                            {loyaltyData.visitsThisMonth}
-                          </div>
-                          <p className="text-xs text-muted-foreground">Visits This Month</p>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-hsl(var(--earth-green))">
-                            {loyaltyData.rewardsEarned}
-                          </div>
-                          <p className="text-xs text-muted-foreground">Rewards Earned</p>
-                        </div>
-                      </div>
+                       <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                         <div className="text-center">
+                           <div className="text-2xl font-bold text-hsl(var(--earth-green))">
+                             ${loyaltyData?.total_spent.toFixed(2) || '0.00'}
+                           </div>
+                           <p className="text-xs text-muted-foreground">Total Spent</p>
+                         </div>
+                         <div className="text-center">
+                           <div className="text-2xl font-bold text-hsl(var(--earth-green))">
+                             {loyaltyData?.visits_this_month || 0}
+                           </div>
+                           <p className="text-xs text-muted-foreground">Visits This Month</p>
+                         </div>
+                         <div className="text-center">
+                           <div className="text-2xl font-bold text-hsl(var(--earth-green))">
+                             {loyaltyData?.rewards_earned || 0}
+                           </div>
+                           <p className="text-xs text-muted-foreground">Rewards Earned</p>
+                         </div>
+                       </div>
                     </CardContent>
                   </Card>
                 </div>
@@ -245,9 +225,9 @@ const Loyalty = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {tiers.map((tier, index) => (
-                  <Card key={index} className={`relative ${loyaltyData.tier === tier.name ? 'ring-2 ring-hsl(var(--earth-green))' : ''}`}>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                 {tiers.map((tier, index) => (
+                   <Card key={index} className={`relative ${loyaltyData?.tier === tier.name ? 'ring-2 ring-hsl(var(--earth-green))' : ''}`}>
                     <CardHeader className="text-center">
                       <div className={`w-16 h-16 ${tier.bgColor} rounded-full flex items-center justify-center mx-auto mb-4`}>
                         <tier.icon className={`h-8 w-8 ${tier.color}`} />
@@ -267,11 +247,11 @@ const Loyalty = () => {
                         ))}
                       </div>
                     </CardContent>
-                    {loyaltyData.tier === tier.name && (
-                      <div className="absolute -top-2 -right-2">
-                        <Badge className="bg-hsl(var(--earth-green))">Current</Badge>
-                      </div>
-                    )}
+                     {loyaltyData?.tier === tier.name && (
+                       <div className="absolute -top-2 -right-2">
+                         <Badge className="bg-hsl(var(--earth-green))">Current</Badge>
+                       </div>
+                     )}
                   </Card>
                 ))}
               </div>
@@ -311,13 +291,13 @@ const Loyalty = () => {
                         <div className="text-2xl font-bold text-hsl(var(--earth-green))">
                           {reward.points} pts
                         </div>
-                        <Button 
-                          onClick={() => handleRedeemReward(reward.id, reward.points)}
-                          disabled={!reward.available || loyaltyData.points < reward.points}
-                          size="sm"
-                        >
-                          {loyaltyData.points < reward.points ? 'Not Enough Points' : 'Redeem'}
-                        </Button>
+                         <Button 
+                           onClick={() => handleRedeemReward(reward.id, reward.points, reward.name)}
+                           disabled={!reward.available || !loyaltyData || loyaltyData.points < reward.points}
+                           size="sm"
+                         >
+                           {!loyaltyData || loyaltyData.points < reward.points ? 'Not Enough Points' : 'Redeem'}
+                         </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -334,34 +314,41 @@ const Loyalty = () => {
                   Recent Activity
                 </h2>
                 
-                <Card>
-                  <CardContent className="p-0">
-                    <div className="divide-y">
-                      {recentActivity.map((activity, index) => (
-                        <div key={index} className="p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              activity.action === 'Purchase' ? 'bg-green-100 text-green-600' :
-                              activity.action === 'Reward' ? 'bg-blue-100 text-blue-600' :
-                              'bg-yellow-100 text-yellow-600'
-                            }`}>
-                              {activity.action === 'Purchase' ? <Coffee className="h-5 w-5" /> :
-                               activity.action === 'Reward' ? <Gift className="h-5 w-5" /> :
-                               <Star className="h-5 w-5" />}
-                            </div>
-                            <div>
-                              <p className="font-medium">{activity.description}</p>
-                              <p className="text-sm text-muted-foreground">{activity.date}</p>
-                            </div>
-                          </div>
-                          <div className={`font-bold ${activity.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {activity.points > 0 ? '+' : ''}{activity.points} pts
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                 <Card>
+                   <CardContent className="p-0">
+                     <div className="divide-y">
+                       {transactions.map((transaction, index) => (
+                         <div key={index} className="p-4 flex items-center justify-between">
+                           <div className="flex items-center gap-4">
+                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                               transaction.type === 'earned' ? 'bg-green-100 text-green-600' :
+                               transaction.type === 'redeemed' ? 'bg-blue-100 text-blue-600' :
+                               'bg-yellow-100 text-yellow-600'
+                             }`}>
+                               {transaction.type === 'earned' ? <Coffee className="h-5 w-5" /> :
+                                transaction.type === 'redeemed' ? <Gift className="h-5 w-5" /> :
+                                <Star className="h-5 w-5" />}
+                             </div>
+                             <div>
+                               <p className="font-medium">{transaction.description}</p>
+                               <p className="text-sm text-muted-foreground">
+                                 {new Date(transaction.created_at).toLocaleDateString()}
+                               </p>
+                             </div>
+                           </div>
+                           <div className={`font-bold ${transaction.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                             {transaction.points > 0 ? '+' : ''}{transaction.points} pts
+                           </div>
+                         </div>
+                       ))}
+                       {transactions.length === 0 && (
+                         <div className="p-8 text-center text-muted-foreground">
+                           <p>No transactions yet. Start earning points by making purchases!</p>
+                         </div>
+                       )}
+                     </div>
+                   </CardContent>
+                 </Card>
               </div>
             </div>
           </section>

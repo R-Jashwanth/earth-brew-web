@@ -7,111 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useCart } from '@/hooks/useCart';
+import { useShop } from '@/hooks/useShop';
 import { Search, Plus, Star, Leaf, Coffee, ShoppingBag } from 'lucide-react';
 
-interface ShopItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  image_url: string;
-  rating: number;
-  is_organic: boolean;
-  is_bestseller: boolean;
-  stock: number;
-}
-
 const Shop = () => {
-  const [shopItems, setShopItems] = useState<ShopItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<ShopItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const { addToCart } = useCart();
+  const { products: shopItems, loading, addToCart } = useShop();
 
   const categories = ['all', 'Coffee Beans', 'Equipment', 'Merchandise', 'Gift Cards'];
-
-  // Mock data for shop items
-  const mockShopItems: ShopItem[] = [
-    {
-      id: 'shop-1',
-      name: 'Ethiopian Single Origin',
-      description: 'Premium single-origin coffee beans with floral notes and bright acidity. Ethically sourced from highland farms.',
-      price: 24.99,
-      category: 'Coffee Beans',
-      image_url: 'https://images.pexels.com/photos/894695/pexels-photo-894695.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.8,
-      is_organic: true,
-      is_bestseller: true,
-      stock: 25
-    },
-    {
-      id: 'shop-2',
-      name: 'Colombian Dark Roast',
-      description: 'Rich, full-bodied dark roast with chocolate undertones. Perfect for espresso and French press brewing.',
-      price: 22.99,
-      category: 'Coffee Beans',
-      image_url: 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.7,
-      is_organic: true,
-      is_bestseller: false,
-      stock: 18
-    },
-    {
-      id: 'shop-3',
-      name: 'Eco Brews French Press',
-      description: 'Sustainable bamboo and glass French press. Perfect for brewing our premium coffee blends at home.',
-      price: 45.99,
-      category: 'Equipment',
-      image_url: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.9,
-      is_organic: false,
-      is_bestseller: true,
-      stock: 12
-    },
-    {
-      id: 'shop-4',
-      name: 'Reusable Coffee Cup',
-      description: 'Eco-friendly bamboo fiber coffee cup with silicone lid. Dishwasher safe and perfect for on-the-go.',
-      price: 18.99,
-      category: 'Merchandise',
-      image_url: 'https://images.pexels.com/photos/4226796/pexels-photo-4226796.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.6,
-      is_organic: false,
-      is_bestseller: false,
-      stock: 35
-    },
-    {
-      id: 'shop-5',
-      name: 'Coffee Subscription Box',
-      description: 'Monthly delivery of our finest coffee selections. Includes tasting notes and brewing guides.',
-      price: 39.99,
-      category: 'Gift Cards',
-      image_url: 'https://images.pexels.com/photos/4226140/pexels-photo-4226140.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.9,
-      is_organic: true,
-      is_bestseller: true,
-      stock: 100
-    },
-    {
-      id: 'shop-6',
-      name: 'Manual Coffee Grinder',
-      description: 'Precision ceramic burr grinder for consistent coffee grounds. Compact design perfect for travel.',
-      price: 89.99,
-      category: 'Equipment',
-      image_url: 'https://images.pexels.com/photos/4226796/pexels-photo-4226796.jpeg?auto=compress&cs=tinysrgb&w=400',
-      rating: 4.8,
-      is_organic: false,
-      is_bestseller: false,
-      stock: 8
-    }
-  ];
-
-  useEffect(() => {
-    // Simulate API call
-    setShopItems(mockShopItems);
-  }, []);
 
   useEffect(() => {
     filterItems();
@@ -135,9 +40,7 @@ const Shop = () => {
   };
 
   const handleAddToCart = async (itemId: string) => {
-    // For shop items, we'd need to create menu items or handle differently
-    // For now, we'll show a success message
-    console.log('Adding shop item to cart:', itemId);
+    await addToCart(itemId);
   };
 
   return (
