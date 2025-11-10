@@ -60,10 +60,19 @@ export const useReservations = () => {
   };
 
   const createReservation = async (formData: ReservationForm) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to make a reservation.",
+        variant: "destructive"
+      });
+      return { success: false, error: "Not authenticated" };
+    }
+
     setLoading(true);
     try {
       const reservationData = {
-        user_id: user?.id || null,
+        user_id: user.id,
         name: formData.name,
         email: formData.email,
         phone: formData.phone || null,
@@ -88,9 +97,7 @@ export const useReservations = () => {
         description: `Your table for ${formData.party_size} on ${formData.date.toLocaleDateString()} at ${formData.time} has been reserved.`
       });
 
-      if (user) {
-        fetchReservations();
-      }
+      fetchReservations();
 
       return { success: true, data };
     } catch (error: any) {

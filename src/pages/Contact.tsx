@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { z } from 'zod';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -9,6 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+
+const contactSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  subject: z.string().trim().min(1, "Subject is required").max(200, "Subject must be less than 200 characters"),
+  message: z.string().trim().min(10, "Message must be at least 10 characters").max(2000, "Message must be less than 2000 characters")
+});
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -29,23 +37,38 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    try {
+      // Validate form data with zod schema
+      contactSchema.parse(formData);
+      
+      setLoading(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate form submission
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-    toast({
-      title: "Message sent!",
-      description: "Thank you for your message. We'll get back to you soon."
-    });
+      toast({
+        title: "Message sent!",
+        description: "Thank you for your message. We'll get back to you soon."
+      });
 
-    setFormData({
-      name: '',
-      email: '',
-      subject: '',
-      message: ''
-    });
-    setLoading(false);
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+      setLoading(false);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Show the first validation error
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   const locations = [
@@ -107,6 +130,7 @@ const Contact = () => {
                             name="name"
                             value={formData.name}
                             onChange={handleInputChange}
+                            maxLength={100}
                             required
                           />
                         </div>
@@ -118,6 +142,7 @@ const Contact = () => {
                             type="email"
                             value={formData.email}
                             onChange={handleInputChange}
+                            maxLength={255}
                             required
                           />
                         </div>
@@ -130,6 +155,7 @@ const Contact = () => {
                           name="subject"
                           value={formData.subject}
                           onChange={handleInputChange}
+                          maxLength={200}
                           required
                         />
                       </div>
@@ -141,6 +167,7 @@ const Contact = () => {
                           name="message"
                           value={formData.message}
                           onChange={handleInputChange}
+                          maxLength={2000}
                           rows={6}
                           required
                         />
